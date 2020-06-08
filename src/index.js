@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import idleFrog from "./assets/used_assets/idle_frog.png"
+import frogJump from "./assets/used_assets/jump_frog.gif"
+import frogFall from "./assets/used_assets/fall_frog.gif"
 import grass from "./assets/used_assets/tile_jungle_ground_full.png"
 
 const gameState = {}
@@ -20,7 +22,7 @@ const config = {
   scene: {
 		preload,
 		create,
-		update
+    update
 	}
 }
 
@@ -28,7 +30,9 @@ const game = new Phaser.Game(config);
 
 function preload() {
   this.load.image('grass', grass);
-  this.load.spritesheet('idleFrog', idleFrog, {frameWidth: 64, frameHeight: 64})
+  this.load.spritesheet('idleFrog', idleFrog, {frameWidth: 64, frameHeight: 24})
+  this.load.image('frogJump', frogJump)
+  this.load.image('frogFall', frogFall)
 }
 
 function create() {
@@ -51,27 +55,35 @@ function create() {
     repeat: -1
   })
 
-	this.physics.add.collider(gameState.player, grass)
+  this.physics.add.collider(gameState.player, grass)
+  console.log(gameState.player.y)
+
+  gameState.canJump = false
 }
 
 function update () {
 	const cursors = this.input.keyboard.createCursorKeys();
-
-	if(cursors.left.isDown){
-    gameState.player.setVelocityX(-200)
-    // gameState.player.anims.play('movement', true)
-    gameState.player.flipX = true
-	} else if (cursors.right.isDown) {
-    gameState.player.setVelocityX(200)
-    // gameState.player.anims.play('movement', true)
-    gameState.player.flipX = false
-	} else {
-    gameState.player.setVelocityX(0);
-    gameState.player.anims.play('idle', true)
-  }
   
-  if (cursors.up.isDown) {
-    gameState.player.setVelocityY(-100)
+  if (cursors.up.isDown && gameState.canJump === true) {
+    gameState.player.setVelocityY(-200)
+    gameState.player.setTexture('frogJump')
+    gameState.canJump = false
+  } 
+
+  if (gameState.player.y < 312) {
+    gameState.player.setTexture('frogFall')
+    if (cursors.left.isDown){
+      gameState.player.setVelocityX(-200)
+      gameState.player.flipX = true
+    } else if (cursors.right.isDown) {
+      gameState.player.setVelocityX(200)
+      gameState.player.flipX = false
+    }
+  } else {
+    gameState.player.setTexture('idleFrog')
+    gameState.player.anims.play('idle', true)
+    gameState.player.setVelocityX(0);
+    gameState.canJump = true
   }
 
 }
